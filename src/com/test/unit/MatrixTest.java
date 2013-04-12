@@ -1,6 +1,7 @@
 
 package com.test.unit;
 
+import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -13,6 +14,7 @@ import android.util.Log;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class MatrixTest extends ActivityTestCase {
     public static final String TAG = "UnitTest";
@@ -56,23 +58,53 @@ public class MatrixTest extends ActivityTestCase {
         }
     }
 
-    // 18144 / 1920 = 9.45
-    // 4032 / 1080 = 3.73333
-    // 18144 * 4032 / 1920 / 1080 = 35.28
-    // 35.28 开平方 = 5.9396
-    // inSampleSize : 6
-    private int getInSmapleSize(Options opts, float expectPixelSize) {
-        int inSampleSize = 1;
-        int pixels = opts.outHeight * opts.outWidth;
-        if (pixels > expectPixelSize) {
-            // Math.round(long) 四舍五入
-            long size = Math.round(Math.sqrt(pixels / expectPixelSize)); 
-            inSampleSize = (int) ((int) size < size ? size + 1 : size);
-        }
-        return inSampleSize;
-    }
-
     private void pLog(String str) {
         Log.i(TAG, str);
+    }
+    
+    private class Decoder {
+        private BitmapFactory.Options mOptions;
+        private int expectSize ;
+        
+        public void decodeResource(Context context, int id) {
+            
+        }
+        
+        public void decodeFile(String path) {
+            
+        }
+        
+        public int getExpectSize() {
+            return expectSize;
+        }
+
+        public void setExpectSize(int expectSize) {
+            this.expectSize = expectSize;
+        }
+
+        private void decodeBitmap(InputStream is, boolean isJustDecodeBounds) {
+            if (mOptions == null) {
+                mOptions = new Options();
+            }
+            mOptions.inJustDecodeBounds = isJustDecodeBounds;
+            mOptions.inSampleSize = isJustDecodeBounds ? 1 : getInSmapleSize();
+            BitmapFactory.decodeStream(is, null, mOptions);
+        }
+
+        // 18144 / 1920 = 9.45
+        // 4032 / 1080 = 3.73333
+        // 18144 * 4032 / 1920 / 1080 = 35.28
+        // 35.28 开平方 = 5.9396
+        // inSampleSize : 6
+        private int getInSmapleSize() {
+            int inSampleSize = 1;
+            int pixels = mOptions.outHeight * mOptions.outWidth;
+            if (pixels > getExpectSize()) {
+                // Math.round(long) 四舍五入
+                long size = Math.round(Math.sqrt(pixels / getExpectSize())); 
+                inSampleSize = (int) ((int) size < size ? size + 1 : size);
+            }
+            return inSampleSize;
+        }
     }
 }
